@@ -39,9 +39,9 @@ function mostrarResultado({ icono, titulo, mensaje, cumplidoId }) {
   }
 }
 
-// TODO fase 3: aqui se disparara la animacion segun habito.efecto_visual (estrellas/ondas/luciernagas)
-function dispararEfectoVisual(efecto) {
-  console.log('Efecto pendiente de implementar en fase 3:', efecto);
+// Dispara la animacion real (definida en efectos.js) segun el efecto elegido para el habito
+function dispararEfectoVisual(efecto, color) {
+  window.dispararEfectoVisual(efecto, color);
 }
 
 document.getElementById('btn-volver').addEventListener('click', () => {
@@ -85,7 +85,7 @@ document.getElementById('btn-volver').addEventListener('click', () => {
     }
 
     if (data.nuevo) {
-      dispararEfectoVisual(data.habito.efecto_visual);
+      dispararEfectoVisual(data.habito.efecto_visual, data.habito.color);
       mostrarResultado({
         icono: '✅',
         titulo: `¡${data.habito.nombre} cumplido!`,

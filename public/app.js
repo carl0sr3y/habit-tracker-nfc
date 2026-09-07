@@ -103,6 +103,12 @@ document.getElementById('form-tiene-horario').addEventListener('change', (e) => 
   document.getElementById('form-horario-campos').classList.toggle('oculto', !e.target.checked);
 });
 
+document.getElementById('form-ver-efecto').addEventListener('click', () => {
+  const efecto = document.getElementById('form-efecto').value;
+  const color = document.getElementById('form-color').value;
+  window.dispararEfectoVisual(efecto, color);
+});
+
 function abrirFormulario(habito) {
   habitoEditandoId = habito ? habito.id : null;
   document.getElementById('form-titulo').textContent = habito ? 'Editar habito' : 'Nuevo habito';
