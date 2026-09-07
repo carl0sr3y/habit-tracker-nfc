@@ -35,7 +35,6 @@ router.post('/', async (req, res) => {
   const modoFinal = MODOS_VALIDOS.includes(modo) ? modo : 'nfc';
   const efectoFinal = EFECTOS_VALIDOS.includes(efecto_visual) ? efecto_visual : 'estrellas';
 
-  // Si es modo nfc, generamos un identificador unico para grabar en el chip fisico
   const tagNfcId = modoFinal === 'nfc' ? crypto.randomBytes(8).toString('hex') : null;
 
   try {
@@ -79,7 +78,16 @@ router.get('/:id', async (req, res) => {
     [id]
   );
 
-  res.json({ habito, historial: historial.rows });
+  const cumplidoHoy = await pool.query(
+    `SELECT id FROM cumplidos WHERE habito_id = $1 AND fecha = CURRENT_DATE AND activo = true`,
+    [id]
+  );
+
+  res.json({
+    habito,
+    historial: historial.rows,
+    cumplido_hoy_id: cumplidoHoy.rows[0] ? cumplidoHoy.rows[0].id : null
+  });
 });
 
 // Editar un habito (nombre, color, descripcion, horario, efecto)

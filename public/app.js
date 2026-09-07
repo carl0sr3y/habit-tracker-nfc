@@ -110,7 +110,7 @@ function abrirFormulario(habito) {
   document.getElementById('form-color').value = habito ? habito.color : '#4f46e5';
   document.getElementById('form-descripcion').value = habito ? (habito.descripcion || '') : '';
   document.getElementById('form-modo').value = habito ? habito.modo : 'nfc';
-  document.getElementById('form-modo').disabled = !!habito; // el modo no se cambia una vez creado
+  document.getElementById('form-modo').disabled = !!habito;
   const tieneHorario = habito && habito.hora_inicio && habito.hora_fin;
   document.getElementById('form-tiene-horario').checked = !!tieneHorario;
   document.getElementById('form-horario-campos').classList.toggle('oculto', !tieneHorario);
@@ -149,10 +149,21 @@ document.getElementById('form-guardar').addEventListener('click', async () => {
 
 // --- Detalle de habito ---
 async function verDetalle(id) {
-  const { habito, historial } = await api(`/habitos/${id}`);
+  const { habito, historial, cumplido_hoy_id } = await api(`/habitos/${id}`);
   document.getElementById('detalle-nombre').textContent = habito.nombre;
   document.getElementById('detalle-descripcion').textContent = habito.descripcion || 'Sin descripcion';
   document.getElementById('detalle-tag').textContent = habito.tag_nfc_id || '(modo manual, sin chip)';
+
+  const bloqueCumplidoHoy = document.getElementById('detalle-cumplido-hoy');
+  bloqueCumplidoHoy.classList.toggle('oculto', !cumplido_hoy_id);
+  if (cumplido_hoy_id) {
+    document.getElementById('detalle-deshacer-hoy').onclick = async () => {
+      if (confirm('¿Seguro que quieres eliminar el cumplido de HOY de este habito? Perderas la moneda ganada y esta accion no se puede deshacer.')) {
+        await api(`/scan/deshacer/${cumplido_hoy_id}`, { method: 'DELETE' });
+        verDetalle(id);
+      }
+    };
+  }
 
   const urlWrap = document.getElementById('detalle-url-wrap');
   if (habito.tag_nfc_id) {

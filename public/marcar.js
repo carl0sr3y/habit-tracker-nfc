@@ -17,7 +17,7 @@ async function sincronizarPendientes() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ escaneos: cola })
     });
-    if (res.ok) guardarCola([]); // si el servidor respondio, limpiamos la cola local
+    if (res.ok) guardarCola([]);
   } catch {
     // sigue sin internet, se reintenta la proxima vez
   }
@@ -95,10 +95,10 @@ document.getElementById('btn-volver').addEventListener('click', () => {
     } else {
       mostrarResultado({
         icono: 'ℹ️',
-        titulo: `${data.habito.nombre} ya estaba marcado hoy`,
-        mensaje: '¿Fue sin querer?',
-        cumplidoId: data.cumplido_id
+        titulo: `${data.habito.nombre} ya se cumplio hoy`,
+        mensaje: 'Si fue un escaneo por error, puedes deshacerlo desde el detalle del habito en la app. Regresando...'
       });
+      setTimeout(() => { window.location.href = '/'; }, 2500);
     }
   } catch (err) {
     mostrarResultado({ icono: '⚠️', titulo: 'Error de conexion', mensaje: 'No se pudo contactar al servidor.' });

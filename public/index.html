@@ -77,6 +77,10 @@
     <div class="tarjeta">
       <p id="detalle-descripcion" class="error" style="color:var(--texto-tenue);"></p>
       <p><strong>Tag NFC:</strong> <span id="detalle-tag"></span></p>
+      <div id="detalle-cumplido-hoy" class="oculto">
+        <p style="color:#4ade80;">✔ Ya se cumplió hoy</p>
+        <button class="peligro" id="detalle-deshacer-hoy">Deshacer cumplido de hoy</button>
+      </div>
       <p id="detalle-url-wrap"><strong>URL para grabar en el chip:</strong><br><code id="detalle-url" style="word-break:break-all;"></code></p>
       <h3>Historial (ultimos cumplidos)</h3>
       <div id="detalle-historial"></div>
