@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcando habito...</title>
+<link rel="stylesheet" href="/styles.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  .resultado { text-align:center; }
+  .icono { font-size:64px; margin-bottom:12px; }
+</style>
+</head>
+<body>
+<div class="contenedor resultado">
+  <div class="icono" id="icono">⏳</div>
+  <h2 id="titulo">Marcando...</h2>
+  <p id="mensaje" style="color:var(--texto-tenue)"></p>
+  <button id="btn-deshacer" class="peligro oculto">Deshacer</button>
+  <br><br>
+  <button class="secundario" id="btn-volver">Ir a mis habitos</button>
+</div>
+<script src="/marcar.js"></script>
+</body>
+</html>

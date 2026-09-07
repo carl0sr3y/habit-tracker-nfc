@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker NFC</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="contenedor">
+
+  <!-- LOGIN / REGISTRO -->
+  <div id="vista-auth">
+    <h1>Habit Tracker</h1>
+    <div class="tarjeta">
+      <h3 id="auth-titulo">Iniciar sesion</h3>
+      <div class="error oculto" id="auth-error"></div>
+      <input type="email" id="auth-email" placeholder="Email">
+      <input type="password" id="auth-password" placeholder="Contraseña">
+      <button id="auth-submit">Entrar</button>
+      <button class="secundario" id="auth-cambiar" style="margin-top:8px;">Crear una cuenta nueva</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="vista-dashboard" class="oculto">
+    <div class="top-bar">
+      <h1>Mis habitos</h1>
+      <span class="monedas">🪙 <span id="monedas-total">0</span></span>
+    </div>
+    <div id="lista-habitos"></div>
+    <button class="secundario" id="btn-logout" style="margin-top:16px;">Cerrar sesion</button>
+    <button class="fab" id="btn-nuevo">+</button>
+  </div>
+
+  <!-- FORMULARIO CREAR/EDITAR HABITO -->
+  <div id="vista-form" class="oculto">
+    <h1 id="form-titulo">Nuevo habito</h1>
+    <div class="tarjeta">
+      <div class="error oculto" id="form-error"></div>
+      <input type="hidden" id="form-id">
+      <label>Nombre</label>
+      <input type="text" id="form-nombre" placeholder="Ej: Leer 20 minutos">
+      <label>Color</label>
+      <input type="color" id="form-color" value="#4f46e5">
+      <label>Descripcion (opcional)</label>
+      <textarea id="form-descripcion" rows="2"></textarea>
+      <label>Modo de marcado</label>
+      <select id="form-modo">
+        <option value="nfc">Chip NFC</option>
+        <option value="manual">Manual (boton en la app)</option>
+      </select>
+      <label>
+        <input type="checkbox" id="form-tiene-horario" style="width:auto;display:inline-block;">
+        Tiene horario especifico
+      </label>
+      <div id="form-horario-campos" class="oculto">
+        <label>Desde</label>
+        <input type="time" id="form-hora-inicio">
+        <label>Hasta</label>
+        <input type="time" id="form-hora-fin">
+      </div>
+      <label>Efecto visual al cumplir</label>
+      <select id="form-efecto">
+        <option value="estrellas">Estrellas</option>
+        <option value="ondas">Ondas de luz</option>
+        <option value="luciernagas">Luciernagas</option>
+      </select>
+      <button id="form-guardar">Guardar</button>
+      <button class="secundario" id="form-cancelar" style="margin-top:8px;">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- DETALLE DE HABITO -->
+  <div id="vista-detalle" class="oculto">
+    <h1 id="detalle-nombre"></h1>
+    <div class="tarjeta">
+      <p id="detalle-descripcion" class="error" style="color:var(--texto-tenue);"></p>
+      <p><strong>Tag NFC:</strong> <span id="detalle-tag"></span></p>
+      <p id="detalle-url-wrap"><strong>URL para grabar en el chip:</strong><br><code id="detalle-url" style="word-break:break-all;"></code></p>
+      <h3>Historial (ultimos cumplidos)</h3>
+      <div id="detalle-historial"></div>
+    </div>
+    <button id="detalle-editar">Editar</button>
+    <button class="peligro" id="detalle-borrar">Borrar habito</button>
+    <button class="secundario" id="detalle-volver">Volver</button>
+  </div>
+
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
