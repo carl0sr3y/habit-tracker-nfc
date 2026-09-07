@@ -39,10 +39,7 @@ function mostrarResultado({ icono, titulo, mensaje, cumplidoId }) {
   }
 }
 
-// Dispara la animacion real (definida en efectos.js) segun el efecto elegido para el habito
-function dispararEfectoVisual(efecto, color) {
-  window.dispararEfectoVisual(efecto, color);
-}
+// La funcion real vive en efectos.js como window.dispararEfectoVisual
 
 document.getElementById('btn-volver').addEventListener('click', () => {
   window.location.href = '/';
@@ -85,7 +82,7 @@ document.getElementById('btn-volver').addEventListener('click', () => {
     }
 
     if (data.nuevo) {
-      dispararEfectoVisual(data.habito.efecto_visual, data.habito.color);
+      window.dispararEfectoVisual(data.habito.efecto_visual, data.habito.color);
       mostrarResultado({
         icono: '✅',
         titulo: `¡${data.habito.nombre} cumplido!`,
