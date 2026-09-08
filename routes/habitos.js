@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const pool = require('../db/pool');
 const { requireAuth } = require('../middleware/auth');
+const { calcularRachas } = require('../lib/rachas');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -9,7 +10,6 @@ router.use(requireAuth);
 const EFECTOS_VALIDOS = ['estrellas', 'ondas', 'luciernagas'];
 const MODOS_VALIDOS = ['nfc', 'manual'];
 
-// Listar todos los habitos del usuario, con si ya se cumplio hoy
 router.get('/', async (req, res) => {
   const result = await pool.query(
     `SELECT h.*,
@@ -25,7 +25,6 @@ router.get('/', async (req, res) => {
   res.json({ habitos: result.rows });
 });
 
-// Crear un habito nuevo
 router.post('/', async (req, res) => {
   const { nombre, color, descripcion, modo, hora_inicio, hora_fin, efecto_visual } = req.body;
 
@@ -61,7 +60,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Obtener el detalle de un habito (incluye historial de cumplidos)
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const habitoResult = await pool.query(
@@ -83,14 +81,34 @@ router.get('/:id', async (req, res) => {
     [id]
   );
 
+  const trofeos = await pool.query(
+    `SELECT dias, ganado_en FROM trofeos WHERE habito_id = $1 AND tipo = 'habito' ORDER BY dias ASC`,
+    [id]
+  );
+
+  const fechasHabito = await pool.query(
+    `SELECT fecha FROM cumplidos WHERE habito_id = $1 AND activo = true ORDER BY fecha ASC`,
+    [id]
+  );
+  const { rachaActual } = calcularRachas(fechasHabito.rows.map(r => r.fecha.toISOString().slice(0, 10)));
+  const ultimaFecha = fechasHabito.rows.length ? fechasHabito.rows[fechasHabito.rows.length - 1].fecha : null;
+  let rachaVigente = 0;
+  if (ultimaFecha) {
+    const hoy = new Date(); hoy.setUTCHours(0, 0, 0, 0);
+    const diffDias = Math.round((hoy - new Date(ultimaFecha.toISOString().slice(0, 10) + 'T00:00:00Z')) / 86400000);
+    rachaVigente = diffDias <= 1 ? rachaActual : 0;
+  }
+
   res.json({
     habito,
     historial: historial.rows,
-    cumplido_hoy_id: cumplidoHoy.rows[0] ? cumplidoHoy.rows[0].id : null
+    cumplido_hoy_id: cumplidoHoy.rows[0] ? cumplidoHoy.rows[0].id : null,
+    racha_actual: rachaVigente,
+    racha_maxima: habito.racha_maxima,
+    trofeos: trofeos.rows
   });
 });
 
-// Editar un habito (nombre, color, descripcion, horario, efecto)
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const { nombre, color, descripcion, hora_inicio, hora_fin, efecto_visual } = req.body;
@@ -124,7 +142,6 @@ router.put('/:id', async (req, res) => {
   res.json({ habito: result.rows[0] });
 });
 
-// Borrar (desactivar) un habito
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   await pool.query(

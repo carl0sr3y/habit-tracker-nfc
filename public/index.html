@@ -28,6 +28,7 @@
       <h1>Mis habitos</h1>
       <span class="monedas">🪙 <span id="monedas-total">0</span></span>
     </div>
+    <button class="secundario" id="btn-perfil" style="margin-bottom:12px;">🏆 Ver perfil y trofeos</button>
     <div id="lista-habitos"></div>
     <button class="secundario" id="btn-logout" style="margin-top:16px;">Cerrar sesion</button>
     <button class="fab" id="btn-nuevo">+</button>
@@ -78,6 +79,8 @@
     <div class="tarjeta">
       <p id="detalle-descripcion" class="error" style="color:var(--texto-tenue);"></p>
       <p><strong>Tag NFC:</strong> <span id="detalle-tag"></span></p>
+      <p>🔥 Racha actual: <strong id="detalle-racha-actual"></strong> dias &nbsp;|&nbsp; Mejor racha: <strong id="detalle-racha-maxima"></strong> dias</p>
+      <div id="detalle-trofeos"></div>
       <div id="detalle-cumplido-hoy" class="oculto">
         <p style="color:#4ade80;">✔ Ya se cumplió hoy</p>
         <button class="peligro" id="detalle-deshacer-hoy">Deshacer cumplido de hoy</button>
@@ -89,6 +92,22 @@
     <button id="detalle-editar">Editar</button>
     <button class="peligro" id="detalle-borrar">Borrar habito</button>
     <button class="secundario" id="detalle-volver">Volver</button>
+  </div>
+
+  <!-- PERFIL Y TROFEOS -->
+  <div id="vista-perfil" class="oculto">
+    <h1>Perfil</h1>
+    <div class="tarjeta">
+      <p>🪙 Monedas: <strong id="perfil-monedas"></strong></p>
+      <p>✨ Racha de dias perfectos: <strong id="perfil-racha-actual"></strong> dias &nbsp;|&nbsp; Mejor: <strong id="perfil-racha-maxima"></strong> dias</p>
+      <h3>Trofeos de dia perfecto</h3>
+      <div id="perfil-trofeos-dia-perfecto"></div>
+    </div>
+    <div class="tarjeta">
+      <h3>Trofeos por habito</h3>
+      <div id="perfil-trofeos-habito"></div>
+    </div>
+    <button class="secundario" id="perfil-volver">Volver</button>
   </div>
 
 </div>

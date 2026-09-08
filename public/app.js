@@ -2,9 +2,8 @@ const API = '/api';
 let esRegistro = false;
 let habitoEditandoId = null;
 
-// --- Utilidades ---
 function mostrar(vistaId) {
-  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle'].forEach(id => {
+  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil'].forEach(id => {
     document.getElementById(id).classList.toggle('oculto', id !== vistaId);
   });
 }
@@ -20,7 +19,6 @@ async function api(path, options = {}) {
   return data;
 }
 
-// --- Auth ---
 document.getElementById('auth-cambiar').addEventListener('click', () => {
   esRegistro = !esRegistro;
   document.getElementById('auth-titulo').textContent = esRegistro ? 'Crear cuenta' : 'Iniciar sesion';
@@ -50,7 +48,43 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   mostrar('vista-auth');
 });
 
-// --- Dashboard ---
+document.getElementById('btn-perfil').addEventListener('click', cargarPerfil);
+document.getElementById('perfil-volver').addEventListener('click', () => cargarDashboard());
+
+const NOMBRE_TROFEO_DIA_PERFECTO = { 7: '🥉 7 dias perfectos', 15: '🥈 15 dias perfectos', 30: '🏆 30 dias perfectos (legendario)' };
+const NOMBRE_TROFEO_HABITO = { 7: '🥉 7 dias', 15: '🥈 15 dias', 30: '🥇 30 dias', 100: '🏆 100 dias (legendario)' };
+
+async function cargarPerfil() {
+  const data = await api('/perfil');
+  document.getElementById('perfil-monedas').textContent = data.monedas;
+  document.getElementById('perfil-racha-actual').textContent = data.dia_perfecto.racha_actual;
+  document.getElementById('perfil-racha-maxima').textContent = data.dia_perfecto.racha_maxima;
+
+  const trofeosDP = document.getElementById('perfil-trofeos-dia-perfecto');
+  trofeosDP.innerHTML = data.dia_perfecto.trofeos.length
+    ? data.dia_perfecto.trofeos.map(t => `<span class="monedas" style="margin-right:6px;">${NOMBRE_TROFEO_DIA_PERFECTO[t.dias]}</span>`).join('')
+    : '<p style="color:var(--texto-tenue)">Aun no hay trofeos de dia perfecto</p>';
+
+  const trofeosHabito = document.getElementById('perfil-trofeos-habito');
+  if (data.trofeos_por_habito.length === 0) {
+    trofeosHabito.innerHTML = '<p style="color:var(--texto-tenue)">Aun no hay trofeos por habito</p>';
+  } else {
+    const porHabito = {};
+    data.trofeos_por_habito.forEach(t => {
+      if (!porHabito[t.habito_id]) porHabito[t.habito_id] = { nombre: t.habito_nombre, color: t.habito_color, trofeos: [] };
+      porHabito[t.habito_id].trofeos.push(t.dias);
+    });
+    trofeosHabito.innerHTML = Object.values(porHabito).map(h => `
+      <div class="tarjeta habito-card" style="--color:${h.color}; display:block;">
+        <strong>${h.nombre}</strong><br>
+        ${h.trofeos.map(d => `<span class="monedas" style="margin-right:6px;">${NOMBRE_TROFEO_HABITO[d]}</span>`).join('')}
+      </div>
+    `).join('');
+  }
+
+  mostrar('vista-perfil');
+}
+
 async function cargarDashboard() {
   const { habitos } = await api('/habitos');
   const yo = await api('/auth/yo');
@@ -95,7 +129,6 @@ async function cargarDashboard() {
   mostrar('vista-dashboard');
 }
 
-// --- Formulario crear/editar habito ---
 document.getElementById('btn-nuevo').addEventListener('click', () => abrirFormulario(null));
 document.getElementById('form-cancelar').addEventListener('click', () => cargarDashboard());
 
@@ -153,12 +186,19 @@ document.getElementById('form-guardar').addEventListener('click', async () => {
   }
 });
 
-// --- Detalle de habito ---
 async function verDetalle(id) {
-  const { habito, historial, cumplido_hoy_id } = await api(`/habitos/${id}`);
+  const { habito, historial, cumplido_hoy_id, racha_actual, racha_maxima, trofeos } = await api(`/habitos/${id}`);
   document.getElementById('detalle-nombre').textContent = habito.nombre;
   document.getElementById('detalle-descripcion').textContent = habito.descripcion || 'Sin descripcion';
   document.getElementById('detalle-tag').textContent = habito.tag_nfc_id || '(modo manual, sin chip)';
+  document.getElementById('detalle-racha-actual').textContent = racha_actual;
+  document.getElementById('detalle-racha-maxima').textContent = racha_maxima;
+
+  const NOMBRE_TROFEO = { 7: '🥉 7 dias', 15: '🥈 15 dias', 30: '🥇 30 dias', 100: '🏆 100 dias (legendario)' };
+  const trofeosEl = document.getElementById('detalle-trofeos');
+  trofeosEl.innerHTML = trofeos.length
+    ? trofeos.map(t => `<span class="monedas" style="margin-right:6px;">${NOMBRE_TROFEO[t.dias]}</span>`).join('')
+    : '<p style="color:var(--texto-tenue)">Aun no hay trofeos para este habito</p>';
 
   const bloqueCumplidoHoy = document.getElementById('detalle-cumplido-hoy');
   bloqueCumplidoHoy.classList.toggle('oculto', !cumplido_hoy_id);
@@ -197,7 +237,6 @@ async function verDetalle(id) {
   mostrar('vista-detalle');
 }
 
-// --- Arranque ---
 (async function iniciar() {
   try {
     await api('/auth/yo');
