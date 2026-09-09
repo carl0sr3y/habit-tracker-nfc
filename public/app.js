@@ -2,9 +2,24 @@ const API = '/api';
 let esRegistro = false;
 let habitoEditandoId = null;
 
+// Vistas que son "pestañas" (viven en la barra inferior) vs vistas "apiladas" (con boton Volver)
+const VISTA_A_BOTON_NAV = {
+  'vista-dashboard': 'nav-habitos',
+  'vista-perfil': 'btn-perfil',
+  'vista-tienda': 'btn-tienda',
+  'vista-estadisticas': 'btn-estadisticas'
+};
+
 function mostrar(vistaId) {
   ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil', 'vista-tienda', 'vista-estadisticas'].forEach(id => {
     document.getElementById(id).classList.toggle('oculto', id !== vistaId);
+  });
+
+  const navInferior = document.getElementById('nav-inferior');
+  const esPestaña = !!VISTA_A_BOTON_NAV[vistaId];
+  navInferior.classList.toggle('oculto', !esPestaña);
+  navInferior.querySelectorAll('button').forEach(btn => {
+    btn.classList.toggle('activa', esPestaña && btn.id === VISTA_A_BOTON_NAV[vistaId]);
   });
 }
 
@@ -17,6 +32,14 @@ async function api(path, options = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Error de red');
   return data;
+}
+
+// Aplica el tema realmente activo del usuario (usado al entrar a cualquier pestaña,
+// para "deshacer" cualquier previsualizacion de tema que haya quedado activa en la tienda)
+async function restaurarTemaReal() {
+  const yo = await api('/auth/yo');
+  window.aplicarTema(yo.usuario.tema_activo);
+  return yo;
 }
 
 // --- Auth ---
@@ -49,21 +72,21 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
   mostrar('vista-auth');
 });
 
-// --- Navegacion (perfil / tienda / estadisticas) ---
+// --- Navegacion inferior ---
+document.getElementById('nav-habitos').addEventListener('click', cargarDashboard);
 document.getElementById('btn-perfil').addEventListener('click', cargarPerfil);
-document.getElementById('perfil-volver').addEventListener('click', () => cargarDashboard());
-
 document.getElementById('btn-tienda').addEventListener('click', cargarTienda);
-
 document.getElementById('btn-estadisticas').addEventListener('click', cargarEstadisticas);
-document.getElementById('estadisticas-volver').addEventListener('click', () => cargarDashboard());
 
 // --- Dashboard ---
+function inicialAvatar(nombre) {
+  return (nombre.trim()[0] || '?').toUpperCase();
+}
+
 async function cargarDashboard() {
   const { habitos } = await api('/habitos');
-  const yo = await api('/auth/yo');
+  const yo = await restaurarTemaReal();
   document.getElementById('monedas-total').textContent = yo.usuario.monedas;
-  window.aplicarTema(yo.usuario.tema_activo);
 
   const lista = document.getElementById('lista-habitos');
   lista.innerHTML = '';
@@ -71,35 +94,43 @@ async function cargarDashboard() {
     lista.innerHTML = '<p class="vacio">Aun no tienes habitos. Toca + para crear uno.</p>';
   }
   habitos.forEach(h => {
-    const fila = document.createElement('div');
-    fila.className = 'fila';
-    fila.innerHTML = `
-      <span class="fila-punto" style="--punto-color:${h.color}"></span>
-      <div class="fila-texto">
-        <div class="fila-titulo">${h.nombre}</div>
-        <div class="fila-sub">${h.modo === 'nfc' ? 'NFC' : 'Manual'}</div>
+    const card = document.createElement('div');
+    card.className = 'habito-card';
+    card.style.setProperty('--tarjeta-fondo', `color-mix(in srgb, ${h.color} 14%, var(--bg-card))`);
+    card.style.setProperty('--tarjeta-borde', `color-mix(in srgb, ${h.color} 30%, var(--borde))`);
+    card.style.setProperty('--check-color', h.color);
+
+    const dots = h.ultimos_dias.map(d =>
+      `<div class="habito-dot ${d.cumplido ? 'lleno' : ''}" style="--dot-lleno:${h.color}"></div>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="habito-card-top">
+        <div class="habito-avatar" style="background:${h.color}">${inicialAvatar(h.nombre)}</div>
+        <div class="habito-nombre-wrap">
+          <div class="habito-nombre">${h.nombre}</div>
+          <div class="habito-sub">${h.modo === 'nfc' ? 'NFC' : 'Manual'}</div>
+        </div>
+        <button class="habito-check ${h.cumplido_hoy ? 'activo' : ''}" style="--check-color:${h.color}">✓</button>
       </div>
-      <span class="fila-estado ${h.cumplido_hoy ? 'cumplido' : ''}">${h.cumplido_hoy ? 'Cumplido ✔' : 'Pendiente'}</span>
+      <div class="habito-dots">${dots}</div>
     `;
-    fila.addEventListener('click', () => verDetalle(h.id));
 
-    if (h.modo === 'manual' && !h.cumplido_hoy) {
-      const btn = document.createElement('button');
-      btn.className = 'secundario fila-accion';
-      btn.textContent = 'Marcar';
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        try {
-          await api(`/scan/manual/${h.id}`, { method: 'POST' });
-          cargarDashboard();
-        } catch (err) {
-          alert(err.message);
-        }
-      });
-      fila.appendChild(btn);
-    }
+    card.addEventListener('click', () => verDetalle(h.id));
 
-    lista.appendChild(fila);
+    const btnCheck = card.querySelector('.habito-check');
+    btnCheck.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (h.modo !== 'manual' || h.cumplido_hoy) return; // los de NFC solo se marcan escaneando
+      try {
+        await api(`/scan/manual/${h.id}`, { method: 'POST' });
+        cargarDashboard();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    lista.appendChild(card);
   });
 
   mostrar('vista-dashboard');
@@ -211,6 +242,7 @@ async function verDetalle(id) {
       cargarDashboard();
     }
   };
+  document.getElementById('detalle-volver').onclick = () => cargarDashboard();
 
   mostrar('vista-detalle');
 }
@@ -219,6 +251,7 @@ async function verDetalle(id) {
 const NOMBRE_TROFEO_DIA_PERFECTO = { 7: '7 dias perfectos', 15: '15 dias perfectos', 30: '30 dias perfectos · legendario' };
 
 async function cargarPerfil() {
+  await restaurarTemaReal();
   const data = await api('/perfil');
   document.getElementById('perfil-monedas').textContent = data.monedas;
   document.getElementById('perfil-racha-actual').textContent = data.dia_perfecto.racha_actual;
@@ -258,6 +291,7 @@ const COLOR_MARCO = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#d4af37' };
 const NOMBRE_NIVEL_TEMA = { comun: 'Comun', epico: 'Epico', legendario: 'Legendario' };
 
 async function cargarTienda() {
+  await restaurarTemaReal();
   const data = await api('/tienda');
   document.getElementById('tienda-monedas').textContent = (await api('/auth/yo')).usuario.monedas;
 
@@ -304,8 +338,6 @@ async function cargarTienda() {
     </div>
   `).join('');
 
-  const temaActivoActual = (data.temas.find(t => t.activo) || {}).clave || null;
-
   temasEl.querySelectorAll('.btn-previsualizar-tema').forEach(btn => {
     btn.addEventListener('click', () => window.aplicarTema(btn.dataset.clave));
   });
@@ -326,11 +358,6 @@ async function cargarTienda() {
     });
   });
 
-  document.getElementById('tienda-volver').onclick = () => {
-    window.aplicarTema(temaActivoActual);
-    cargarDashboard();
-  };
-
   mostrar('vista-tienda');
 }
 
@@ -340,6 +367,7 @@ let mesActual = new Date();
 mesActual.setDate(1);
 
 async function cargarEstadisticas() {
+  await restaurarTemaReal();
   const data = await api('/estadisticas');
   datosEstadisticas = {};
   data.dias.forEach(d => { datosEstadisticas[d.fecha] = d.habitos; });

@@ -26,18 +26,19 @@
 
   <!-- DASHBOARD -->
   <div id="vista-dashboard" class="oculto">
-    <div class="top-bar">
-      <h1>Habitos</h1>
-      <span class="monedas">🪙 <strong id="monedas-total">0</strong></span>
+    <div class="barra-superior">
+      <div class="lado">
+        <button class="btn-icono" id="btn-logout" title="Cerrar sesion">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <span class="monedas">🪙 <strong id="monedas-total">0</strong></span>
+      </div>
+      <button class="btn-icono acento" id="btn-nuevo" title="Nuevo habito">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
     </div>
-    <nav class="nav-tabs">
-      <button id="btn-perfil">Perfil</button>
-      <button id="btn-tienda">Tienda</button>
-      <button id="btn-estadisticas">Estadisticas</button>
-    </nav>
-    <div class="lista" id="lista-habitos"></div>
-    <button class="ghost" id="btn-logout" style="margin-top:20px; padding:4px 0;">Cerrar sesion</button>
-    <button class="fab" id="btn-nuevo">+</button>
+    <h1>Habitos</h1>
+    <div id="lista-habitos" style="margin-top:16px;"></div>
   </div>
 
   <!-- FORMULARIO CREAR/EDITAR HABITO -->
@@ -115,7 +116,6 @@
 
   <!-- PERFIL Y TROFEOS -->
   <div id="vista-perfil" class="oculto">
-    <button class="ghost" id="perfil-volver" style="padding:4px 0; margin-bottom:8px;">← Volver</button>
     <h1>Perfil</h1>
     <div class="tarjeta" style="margin-top:16px;">
       <p style="margin:0 0 6px;">🪙 Monedas: <strong id="perfil-monedas"></strong></p>
@@ -129,7 +129,6 @@
 
   <!-- TIENDA -->
   <div id="vista-tienda" class="oculto">
-    <button class="ghost" id="tienda-volver" style="padding:4px 0; margin-bottom:8px;">← Volver</button>
     <div class="top-bar">
       <h1>Tienda</h1>
       <span class="monedas">🪙 <strong id="tienda-monedas">0</strong></span>
@@ -142,7 +141,6 @@
 
   <!-- ESTADISTICAS -->
   <div id="vista-estadisticas" class="oculto">
-    <button class="ghost" id="estadisticas-volver" style="padding:4px 0; margin-bottom:8px;">← Volver</button>
     <h1>Estadisticas</h1>
     <div class="tarjeta" style="margin-top:16px;">
       <h3>Ultimo año</h3>
@@ -158,6 +156,22 @@
       <div id="calendario-detalle" style="margin-top:14px; font-size:13px;"></div>
     </div>
   </div>
+
+  <!-- BARRA DE NAVEGACION INFERIOR (solo visible con sesion iniciada) -->
+  <nav class="nav-inferior oculto" id="nav-inferior">
+    <button id="nav-habitos" title="Habitos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+    </button>
+    <button id="btn-perfil" title="Perfil y trofeos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"></path><path d="M17 5h2a2 2 0 0 1 2 2 3 3 0 0 1-3 3"></path><path d="M7 5H5a2 2 0 0 0-2 2 3 3 0 0 0 3 3"></path></svg>
+    </button>
+    <button id="btn-tienda" title="Tienda">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+    </button>
+    <button id="btn-estadisticas" title="Estadisticas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    </button>
+  </nav>
 
 </div>
 <script src="/efectos.js"></script>

@@ -204,3 +204,113 @@ code {
   color: var(--texto-tenue);
   word-break: break-all;
 }
+
+/* --- Barra de navegacion inferior flotante --- */
+.nav-inferior {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  z-index: 50;
+}
+.nav-inferior button {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: none;
+  border: none;
+  color: var(--texto-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.nav-inferior button svg { width: 20px; height: 20px; }
+.nav-inferior button.activa { background: var(--bg-card-hover); color: var(--texto); }
+
+/* --- Barra superior de la app --- */
+.barra-superior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.barra-superior .lado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-icono {
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--borde);
+  color: var(--texto-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.btn-icono svg { width: 18px; height: 18px; }
+.btn-icono.acento { background: var(--acento); color: #04201c; border: none; }
+
+/* --- Tarjetas de habito con color propio --- */
+.habito-card {
+  border-radius: 16px;
+  border: 1px solid var(--tarjeta-borde, var(--borde));
+  background: var(--tarjeta-fondo, var(--bg-card));
+  padding: 14px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.habito-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.habito-avatar {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: #04201c;
+}
+.habito-nombre-wrap { flex: 1; min-width: 0; }
+.habito-nombre { font-size: 15px; font-weight: 600; }
+.habito-sub { font-size: 11px; color: var(--texto-tenue); margin-top: 1px; }
+.habito-check {
+  width: 32px; height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--borde);
+  background: transparent;
+  color: var(--texto-tenue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+.habito-check.activo { background: var(--check-color, var(--acento)); border: none; color: #04201c; }
+.habito-dots {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.habito-dot {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--dot-vacio, rgba(255,255,255,0.06));
+}
+.habito-dot.lleno { background: var(--dot-lleno, var(--acento)); }

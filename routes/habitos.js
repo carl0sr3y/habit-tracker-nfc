@@ -10,7 +10,7 @@ router.use(requireAuth);
 const EFECTOS_VALIDOS = ['estrellas', 'ondas', 'luciernagas'];
 const MODOS_VALIDOS = ['nfc', 'manual'];
 
-// Listar todos los habitos del usuario, con si ya se cumplio hoy
+// Listar todos los habitos del usuario, con si ya se cumplio hoy y su mini-historial reciente
 router.get('/', async (req, res) => {
   const result = await pool.query(
     `SELECT h.*,
@@ -23,7 +23,38 @@ router.get('/', async (req, res) => {
      ORDER BY h.creado_en ASC`,
     [req.usuarioId]
   );
-  res.json({ habitos: result.rows });
+
+  const cumplidosRecientes = await pool.query(
+    `SELECT c.habito_id, c.fecha FROM cumplidos c
+     JOIN habitos h ON h.id = c.habito_id
+     WHERE h.usuario_id = $1 AND c.activo = true
+       AND c.fecha >= (CURRENT_DATE - INTERVAL '34 days')`,
+    [req.usuarioId]
+  );
+  const fechasPorHabito = {};
+  cumplidosRecientes.rows.forEach(r => {
+    const fecha = r.fecha.toISOString().slice(0, 10);
+    if (!fechasPorHabito[r.habito_id]) fechasPorHabito[r.habito_id] = new Set();
+    fechasPorHabito[r.habito_id].add(fecha);
+  });
+
+  const hoy = new Date();
+  const ultimos35Dias = [];
+  for (let i = 34; i >= 0; i--) {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() - i);
+    ultimos35Dias.push(d.toISOString().slice(0, 10));
+  }
+
+  const habitosConHistorial = result.rows.map(h => ({
+    ...h,
+    ultimos_dias: ultimos35Dias.map(fecha => ({
+      fecha,
+      cumplido: (fechasPorHabito[h.id] || new Set()).has(fecha)
+    }))
+  }));
+
+  res.json({ habitos: habitosConHistorial });
 });
 
 // Crear un habito nuevo
