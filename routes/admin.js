@@ -3,6 +3,8 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
+// Middleware propio (NO usa requireAuth/JWT de usuarios normales):
+// se protege con una clave secreta separada, pensada para uso interno del desarrollador.
 function requireAdmin(req, res, next) {
   const clave = req.headers['x-admin-key'];
   if (!process.env.ADMIN_SECRET) {

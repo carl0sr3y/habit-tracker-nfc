@@ -2,8 +2,9 @@ const API = '/api';
 let esRegistro = false;
 let habitoEditandoId = null;
 
+// --- Utilidades ---
 function mostrar(vistaId) {
-  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil', 'vista-tienda'].forEach(id => {
+  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil', 'vista-tienda', 'vista-estadisticas'].forEach(id => {
     document.getElementById(id).classList.toggle('oculto', id !== vistaId);
   });
 }
@@ -19,6 +20,7 @@ async function api(path, options = {}) {
   return data;
 }
 
+// --- Auth ---
 document.getElementById('auth-cambiar').addEventListener('click', () => {
   esRegistro = !esRegistro;
   document.getElementById('auth-titulo').textContent = esRegistro ? 'Crear cuenta' : 'Iniciar sesion';
@@ -51,8 +53,121 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
 document.getElementById('btn-perfil').addEventListener('click', cargarPerfil);
 document.getElementById('perfil-volver').addEventListener('click', () => cargarDashboard());
 
+document.getElementById('btn-estadisticas').addEventListener('click', cargarEstadisticas);
+document.getElementById('estadisticas-volver').addEventListener('click', () => cargarDashboard());
+
 document.getElementById('btn-tienda').addEventListener('click', cargarTienda);
 document.getElementById('tienda-volver').addEventListener('click', () => cargarDashboard());
+
+let datosEstadisticas = null; // { fecha: [{habito_id, nombre, color}] }
+let mesActual = new Date();
+mesActual.setDate(1);
+
+async function cargarEstadisticas() {
+  const data = await api('/estadisticas');
+  datosEstadisticas = {};
+  data.dias.forEach(d => { datosEstadisticas[d.fecha] = d.habitos; });
+
+  dibujarMapaCalor();
+  mesActual = new Date();
+  mesActual.setDate(1);
+  dibujarCalendario();
+
+  mostrar('vista-estadisticas');
+}
+
+function intensidadColor(cantidad) {
+  if (cantidad === 0) return 'var(--bg-card)';
+  if (cantidad === 1) return 'rgba(79,70,229,0.35)';
+  if (cantidad === 2) return 'rgba(79,70,229,0.6)';
+  if (cantidad === 3) return 'rgba(79,70,229,0.85)';
+  return 'rgba(79,70,229,1)';
+}
+
+function dibujarMapaCalor() {
+  const contenedor = document.getElementById('mapa-calor');
+  contenedor.innerHTML = '';
+  const hoy = new Date();
+  const dias = [];
+  for (let i = 370; i >= 0; i--) {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() - i);
+    dias.push(d);
+  }
+  dias.forEach(d => {
+    const fechaStr = d.toISOString().slice(0, 10);
+    const cantidad = (datosEstadisticas[fechaStr] || []).length;
+    const celda = document.createElement('div');
+    celda.style.width = '11px';
+    celda.style.height = '11px';
+    celda.style.borderRadius = '2px';
+    celda.style.background = intensidadColor(cantidad);
+    celda.title = `${fechaStr}: ${cantidad} habito(s) cumplido(s)`;
+    contenedor.appendChild(celda);
+  });
+}
+
+const NOMBRES_MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const NOMBRES_DIA = ['D','L','M','M','J','V','S'];
+
+document.getElementById('cal-mes-anterior').addEventListener('click', () => {
+  mesActual.setMonth(mesActual.getMonth() - 1);
+  dibujarCalendario();
+});
+document.getElementById('cal-mes-siguiente').addEventListener('click', () => {
+  mesActual.setMonth(mesActual.getMonth() + 1);
+  dibujarCalendario();
+});
+
+function dibujarCalendario() {
+  document.getElementById('cal-titulo-mes').textContent =
+    `${NOMBRES_MES[mesActual.getMonth()]} ${mesActual.getFullYear()}`;
+
+  const grid = document.getElementById('calendario-grid');
+  grid.innerHTML = '';
+
+  NOMBRES_DIA.forEach(nombre => {
+    const cab = document.createElement('div');
+    cab.textContent = nombre;
+    cab.style.textAlign = 'center';
+    cab.style.fontSize = '12px';
+    cab.style.color = 'var(--texto-tenue)';
+    grid.appendChild(cab);
+  });
+
+  const primerDiaSemana = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1).getDay();
+  const diasEnMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
+
+  for (let i = 0; i < primerDiaSemana; i++) {
+    grid.appendChild(document.createElement('div'));
+  }
+
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    const fechaObj = new Date(mesActual.getFullYear(), mesActual.getMonth(), dia);
+    const fechaStr = fechaObj.toISOString().slice(0, 10);
+    const habitos = datosEstadisticas[fechaStr] || [];
+
+    const celda = document.createElement('div');
+    celda.style.textAlign = 'center';
+    celda.style.padding = '6px 0';
+    celda.style.borderRadius = '8px';
+    celda.style.cursor = 'pointer';
+    celda.style.background = habitos.length ? 'rgba(79,70,229,0.25)' : 'transparent';
+    celda.innerHTML = `<div style="font-size:13px;">${dia}</div>` +
+      (habitos.length ? `<div style="font-size:10px;">${'●'.repeat(Math.min(habitos.length, 4))}</div>` : '');
+    celda.addEventListener('click', () => mostrarDetalleDia(fechaStr, habitos));
+    grid.appendChild(celda);
+  }
+}
+
+function mostrarDetalleDia(fechaStr, habitos) {
+  const detalle = document.getElementById('calendario-detalle');
+  detalle.innerHTML = `<strong>${fechaStr}</strong><br>` + (
+    habitos.length
+      ? habitos.map(h => `<span class="monedas" style="margin-right:6px; border-left:3px solid ${h.color};">${h.nombre}</span>`).join('')
+      : '<span style="color:var(--texto-tenue)">Ningun habito cumplido este dia</span>'
+  );
+}
 
 const NOMBRE_MARCO = { bronce: '🥉', plata: '🥈', oro: '🥇' };
 const NOMBRE_NIVEL_TEMA = { comun: 'Comun', epico: 'Epico', legendario: 'Legendario' };
@@ -126,6 +241,7 @@ async function cargarTienda() {
     });
   });
 
+  // Al salir de la tienda sin activar nada nuevo, restaurar el tema realmente activo (por si solo estaba previsualizando)
   document.getElementById('tienda-volver').onclick = () => {
     window.aplicarTema(temaActivoActual);
     cargarDashboard();
@@ -168,6 +284,7 @@ async function cargarPerfil() {
   mostrar('vista-perfil');
 }
 
+// --- Dashboard ---
 async function cargarDashboard() {
   const { habitos } = await api('/habitos');
   const yo = await api('/auth/yo');
@@ -213,6 +330,7 @@ async function cargarDashboard() {
   mostrar('vista-dashboard');
 }
 
+// --- Formulario crear/editar habito ---
 document.getElementById('btn-nuevo').addEventListener('click', () => abrirFormulario(null));
 document.getElementById('form-cancelar').addEventListener('click', () => cargarDashboard());
 
@@ -233,7 +351,7 @@ function abrirFormulario(habito) {
   document.getElementById('form-color').value = habito ? habito.color : '#4f46e5';
   document.getElementById('form-descripcion').value = habito ? (habito.descripcion || '') : '';
   document.getElementById('form-modo').value = habito ? habito.modo : 'nfc';
-  document.getElementById('form-modo').disabled = !!habito;
+  document.getElementById('form-modo').disabled = !!habito; // el modo no se cambia una vez creado
   const tieneHorario = habito && habito.hora_inicio && habito.hora_fin;
   document.getElementById('form-tiene-horario').checked = !!tieneHorario;
   document.getElementById('form-horario-campos').classList.toggle('oculto', !tieneHorario);
@@ -270,6 +388,7 @@ document.getElementById('form-guardar').addEventListener('click', async () => {
   }
 });
 
+// --- Detalle de habito ---
 async function verDetalle(id) {
   const { habito, historial, cumplido_hoy_id, racha_actual, racha_maxima, trofeos } = await api(`/habitos/${id}`);
   document.getElementById('detalle-nombre').textContent = habito.nombre;
@@ -321,6 +440,7 @@ async function verDetalle(id) {
   mostrar('vista-detalle');
 }
 
+// --- Arranque ---
 (async function iniciar() {
   try {
     await api('/auth/yo');

@@ -25,7 +25,7 @@ document.getElementById('clave-entrar').addEventListener('click', async () => {
   errorEl.classList.add('oculto');
   claveAdmin = clave;
   try {
-    await apiAdmin('/pinturas');
+    await apiAdmin('/pinturas'); // se usa solo para validar que la clave es correcta
     document.getElementById('vista-clave').classList.add('oculto');
     document.getElementById('vista-admin').classList.remove('oculto');
     cargarLista();

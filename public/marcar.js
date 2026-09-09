@@ -17,7 +17,7 @@ async function sincronizarPendientes() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ escaneos: cola })
     });
-    if (res.ok) guardarCola([]);
+    if (res.ok) guardarCola([]); // si el servidor respondio, limpiamos la cola local
   } catch {
     // sigue sin internet, se reintenta la proxima vez
   }

@@ -5,6 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireAuth);
 
+// Listar el catalogo completo, marcando que ya compro el usuario
 router.get('/', async (req, res) => {
   const pinturas = await pool.query(
     `SELECT p.*, EXISTS (
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
   });
 });
 
+// Comprar una pintura
 router.post('/comprar/pintura/:id', async (req, res) => {
   const { id } = req.params;
   const client = await pool.connect();
@@ -64,6 +66,7 @@ router.post('/comprar/pintura/:id', async (req, res) => {
   }
 });
 
+// Comprar un tema
 router.post('/comprar/tema/:id', async (req, res) => {
   const { id } = req.params;
   const client = await pool.connect();
@@ -98,6 +101,7 @@ router.post('/comprar/tema/:id', async (req, res) => {
   }
 });
 
+// Activar un tema ya comprado (o quitar el tema, pasando clave: null)
 router.post('/activar-tema', async (req, res) => {
   const { clave } = req.body;
 

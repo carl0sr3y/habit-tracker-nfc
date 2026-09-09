@@ -148,7 +148,7 @@
 
     if (efecto === 'ondas') efectoOndas(overlay, color);
     else if (efecto === 'luciernagas') efectoLuciernagas(overlay);
-    else efectoEstrellas(overlay);
+    else efectoEstrellas(overlay); // 'estrellas' es el default
 
     setTimeout(() => overlay.remove(), DURACION_MS + 200);
   };

@@ -9,6 +9,7 @@ const scanRoutes = require('./routes/scan');
 const perfilRoutes = require('./routes/perfil');
 const tiendaRoutes = require('./routes/tienda');
 const adminRoutes = require('./routes/admin');
+const estadisticasRoutes = require('./routes/estadisticas');
 
 const app = express();
 
@@ -22,7 +23,9 @@ app.use('/api/scan', scanRoutes);
 app.use('/api/perfil', perfilRoutes);
 app.use('/api/tienda', tiendaRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
 
+// Cualquier ruta no reconocida por la API sirve el index (SPA sencilla)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

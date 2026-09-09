@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
   monedas INTEGER NOT NULL DEFAULT 0,
-  ultimo_bonus_dia_perfecto DATE,
+  ultimo_bonus_dia_perfecto DATE, -- evita dar el bonus de 3 monedas mas de una vez por dia
   creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS habitos (
   color TEXT NOT NULL DEFAULT '#4f46e5',
   descripcion TEXT,
   modo TEXT NOT NULL DEFAULT 'nfc' CHECK (modo IN ('nfc', 'manual')),
-  tag_nfc_id TEXT,
-  hora_inicio TIME,
+  tag_nfc_id TEXT, -- identificador único que viaja en la URL del chip (solo si modo = nfc)
+  hora_inicio TIME, -- NULL = sin restricción de horario
   hora_fin TIME,
   efecto_visual TEXT NOT NULL DEFAULT 'estrellas' CHECK (efecto_visual IN ('estrellas', 'ondas', 'luciernagas')),
   activo BOOLEAN NOT NULL DEFAULT true,
@@ -29,12 +29,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_habitos_tag_nfc ON habitos(tag_nfc_id) WHE
 CREATE TABLE IF NOT EXISTS cumplidos (
   id SERIAL PRIMARY KEY,
   habito_id INTEGER NOT NULL REFERENCES habitos(id) ON DELETE CASCADE,
-  fecha DATE NOT NULL,
+  fecha DATE NOT NULL, -- solo el día, para la regla de "un cumplido por día"
   marcado_en TIMESTAMPTZ NOT NULL DEFAULT now(),
-  activo BOOLEAN NOT NULL DEFAULT true,
+  activo BOOLEAN NOT NULL DEFAULT true, -- false = deshecho por el usuario
   sincronizado_offline BOOLEAN NOT NULL DEFAULT false
 );
 
+-- Solo puede existir UN cumplido activo por hábito por día
 CREATE UNIQUE INDEX IF NOT EXISTS idx_un_cumplido_por_dia
   ON cumplidos(habito_id, fecha)
   WHERE activo = true;
@@ -43,10 +44,13 @@ CREATE INDEX IF NOT EXISTS idx_cumplidos_habito ON cumplidos(habito_id);
 
 -- ===== Fase 2: rachas y trofeos =====
 
+-- Guarda la racha mas larga historica de cada habito (para no tener que recalcularla siempre)
 ALTER TABLE habitos ADD COLUMN IF NOT EXISTS racha_maxima INTEGER NOT NULL DEFAULT 0;
 
+-- Guarda la racha mas larga historica de "dias perfectos" del usuario
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS racha_maxima_dia_perfecto INTEGER NOT NULL DEFAULT 0;
 
+-- Un registro por cada dia en que el usuario cumplio TODOS sus habitos activos (para calcular su racha)
 CREATE TABLE IF NOT EXISTS dias_perfectos (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -54,11 +58,12 @@ CREATE TABLE IF NOT EXISTS dias_perfectos (
   UNIQUE(usuario_id, fecha)
 );
 
+-- Trofeos ganados: por habito individual (racha de dias) o por dia perfecto (racha de dias)
 CREATE TABLE IF NOT EXISTS trofeos (
   id SERIAL PRIMARY KEY,
   usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   tipo TEXT NOT NULL CHECK (tipo IN ('habito', 'dia_perfecto')),
-  habito_id INTEGER REFERENCES habitos(id) ON DELETE CASCADE,
+  habito_id INTEGER REFERENCES habitos(id) ON DELETE CASCADE, -- NULL si tipo = dia_perfecto
   dias INTEGER NOT NULL CHECK (dias IN (7, 15, 30, 100)),
   ganado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -71,17 +76,20 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_trofeo_dia_perfecto_unico
 
 -- ===== Fase 4: tienda (pinturas + temas) y panel de desarrollador =====
 
+-- Que tema tiene activo el usuario ahora mismo (NULL = tema por defecto de la app)
 ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tema_activo TEXT;
 
+-- Pinturas famosas, cargadas desde el panel de desarrollador
 CREATE TABLE IF NOT EXISTS pinturas (
   id SERIAL PRIMARY KEY,
   nombre TEXT NOT NULL,
-  imagen_url TEXT NOT NULL,
+  imagen_url TEXT NOT NULL, -- puede ser una URL externa o una imagen en base64 (data:image/...)
   precio INTEGER NOT NULL CHECK (precio > 0),
   marco TEXT NOT NULL CHECK (marco IN ('bronce', 'plata', 'oro')),
   creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Catalogo de temas visuales (predefinidos en el codigo, ver public/temas.js)
 CREATE TABLE IF NOT EXISTS temas (
   id SERIAL PRIMARY KEY,
   clave TEXT UNIQUE NOT NULL,

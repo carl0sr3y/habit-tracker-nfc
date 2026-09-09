@@ -5,12 +5,16 @@ const { calcularRachas, otorgarTrofeosHabito, otorgarTrofeosDiaPerfecto } = requ
 
 const router = express.Router();
 
+// Revisa si la hora actual cae dentro del horario permitido del habito
 function dentroDeHorario(habito, ahora) {
-  if (!habito.hora_inicio || !habito.hora_fin) return true;
-  const horaActual = ahora.toTimeString().slice(0, 8);
+  if (!habito.hora_inicio || !habito.hora_fin) return true; // sin restriccion
+  const horaActual = ahora.toTimeString().slice(0, 8); // HH:MM:SS
   return horaActual >= habito.hora_inicio && horaActual <= habito.hora_fin;
 }
 
+// Marca el cumplido de un habito, otorga monedas, revisa el bonus de dia perfecto,
+// actualiza rachas y otorga trofeos si corresponde.
+// Devuelve un objeto con el resultado (nuevo cumplido, o ya estaba marcado).
 async function marcarCumplido(habito, fecha) {
   const client = await pool.connect();
   try {
@@ -31,8 +35,10 @@ async function marcarCumplido(habito, fecha) {
     );
     const cumplidoId = insert.rows[0].id;
 
+    // Otorgar 1 moneda por el habito cumplido
     await client.query('UPDATE usuarios SET monedas = monedas + 1 WHERE id = $1', [habito.usuario_id]);
 
+    // --- Racha y trofeos de este habito individual ---
     const fechasHabito = await client.query(
       `SELECT fecha FROM cumplidos WHERE habito_id = $1 AND activo = true ORDER BY fecha ASC`,
       [habito.id]
@@ -46,6 +52,7 @@ async function marcarCumplido(habito, fecha) {
     );
     await otorgarTrofeosHabito(client, habito.usuario_id, habito.id, rachaHabito);
 
+    // Revisar si con este cumplido se completaron TODOS los habitos activos del dia (bonus)
     const pendientes = await client.query(
       `SELECT h.id FROM habitos h
        WHERE h.usuario_id = $1 AND h.activo = true
@@ -70,6 +77,7 @@ async function marcarCumplido(habito, fecha) {
         );
         bonusOtorgado = true;
 
+        // Registrar el dia perfecto y actualizar su racha + trofeos
         await client.query(
           `INSERT INTO dias_perfectos (usuario_id, fecha) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
           [habito.usuario_id, fecha]
@@ -106,6 +114,8 @@ async function marcarCumplido(habito, fecha) {
   }
 }
 
+// Endpoint publico: es el que abre el navegador al acercar el telefono al chip NFC.
+// La URL grabada en el chip es algo como: https://tuapp.com/api/scan/<tagId>
 router.get('/:tagId', async (req, res) => {
   const { tagId } = req.params;
   const ahora = new Date();
@@ -140,6 +150,7 @@ router.get('/:tagId', async (req, res) => {
   }
 });
 
+// Marcado manual (para habitos en modo "manual"), requiere sesion iniciada
 router.post('/manual/:habitoId', requireAuth, async (req, res) => {
   const { habitoId } = req.params;
   const ahora = new Date();
@@ -168,6 +179,7 @@ router.post('/manual/:habitoId', requireAuth, async (req, res) => {
   }
 });
 
+// Deshacer un cumplido marcado por error
 router.delete('/deshacer/:cumplidoId', async (req, res) => {
   const { cumplidoId } = req.params;
   const cumplidoResult = await pool.query(
@@ -180,13 +192,16 @@ router.delete('/deshacer/:cumplidoId', async (req, res) => {
   if (!cumplido) return res.status(404).json({ error: 'Cumplido no encontrado' });
 
   await pool.query('UPDATE cumplidos SET activo = false WHERE id = $1', [cumplidoId]);
+  // Revertir la moneda otorgada por este cumplido
   await pool.query('UPDATE usuarios SET monedas = GREATEST(monedas - 1, 0) WHERE id = $1', [cumplido.usuario_id]);
 
   res.json({ ok: true });
 });
 
+// Sincronizacion de escaneos guardados localmente mientras no habia internet.
+// El frontend guarda en localStorage: [{ tagId, fecha }] y los reenvia aqui al recuperar conexion.
 router.post('/sync', async (req, res) => {
-  const { escaneos } = req.body;
+  const { escaneos } = req.body; // [{ tagId, fecha }]
   if (!Array.isArray(escaneos)) {
     return res.status(400).json({ error: 'Formato invalido' });
   }

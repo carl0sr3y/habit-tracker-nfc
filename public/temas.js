@@ -1,3 +1,9 @@
+// Aplica un tema visual a toda la app cambiando variables CSS y un atributo en <body>.
+// Progresion de cambios:
+//  - comun: solo cambia colores de fondo/acento
+//  - epico: agrega un patron/degradado sutil de fondo
+//  - legendario: fondo animado + bordes con brillo en tarjetas y botones
+
 (function () {
   function inyectarEstilosUnaVez() {
     if (document.getElementById('temas-css')) return;
@@ -51,6 +57,7 @@
     document.head.appendChild(style);
   }
 
+  // clave: 'bosque' | 'aurora' | 'dorado' | null (null = tema por defecto de la app)
   window.aplicarTema = function (clave) {
     inyectarEstilosUnaVez();
     if (clave) {
