@@ -3,7 +3,7 @@ let esRegistro = false;
 let habitoEditandoId = null;
 
 function mostrar(vistaId) {
-  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil'].forEach(id => {
+  ['vista-auth', 'vista-dashboard', 'vista-form', 'vista-detalle', 'vista-perfil', 'vista-tienda'].forEach(id => {
     document.getElementById(id).classList.toggle('oculto', id !== vistaId);
   });
 }
@@ -51,6 +51,89 @@ document.getElementById('btn-logout').addEventListener('click', async () => {
 document.getElementById('btn-perfil').addEventListener('click', cargarPerfil);
 document.getElementById('perfil-volver').addEventListener('click', () => cargarDashboard());
 
+document.getElementById('btn-tienda').addEventListener('click', cargarTienda);
+document.getElementById('tienda-volver').addEventListener('click', () => cargarDashboard());
+
+const NOMBRE_MARCO = { bronce: '🥉', plata: '🥈', oro: '🥇' };
+const NOMBRE_NIVEL_TEMA = { comun: 'Comun', epico: 'Epico', legendario: 'Legendario' };
+
+async function cargarTienda() {
+  const data = await api('/tienda');
+  document.getElementById('tienda-monedas').textContent = (await api('/auth/yo')).usuario.monedas;
+
+  const pinturasEl = document.getElementById('tienda-pinturas');
+  pinturasEl.innerHTML = data.pinturas.length === 0
+    ? '<p style="color:var(--texto-tenue)">Aun no hay pinturas en la tienda</p>'
+    : data.pinturas.map(p => `
+        <div class="tarjeta" style="display:flex; gap:12px; align-items:center;">
+          <img src="${p.imagen_url}" alt="${p.nombre}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:3px solid ${p.marco === 'oro' ? '#d4af37' : p.marco === 'plata' ? '#c0c0c0' : '#cd7f32'};">
+          <div style="flex:1;">
+            <strong>${NOMBRE_MARCO[p.marco]} ${p.nombre}</strong><br>
+            <small style="color:var(--texto-tenue)">🪙 ${p.precio}</small>
+          </div>
+          ${p.comprada
+            ? '<span class="estado">Ya la tienes ✔</span>'
+            : `<button data-id="${p.id}" class="btn-comprar-pintura">Comprar</button>`}
+        </div>
+      `).join('');
+
+  pinturasEl.querySelectorAll('.btn-comprar-pintura').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        await api(`/tienda/comprar/pintura/${btn.dataset.id}`, { method: 'POST' });
+        cargarTienda();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
+
+  const temasEl = document.getElementById('tienda-temas');
+  temasEl.innerHTML = data.temas.map(t => `
+    <div class="tarjeta" style="display:flex; gap:12px; align-items:center;">
+      <div style="flex:1;">
+        <strong>${t.nombre}</strong> <small style="color:var(--texto-tenue)">(${NOMBRE_NIVEL_TEMA[t.nivel]})</small><br>
+        <small style="color:var(--texto-tenue)">🪙 ${t.precio}</small>
+      </div>
+      <button class="secundario btn-previsualizar-tema" data-clave="${t.clave}">👁 Ver</button>
+      ${t.activo
+        ? '<span class="estado">Activo ✔</span>'
+        : t.comprado
+          ? `<button data-clave="${t.clave}" class="btn-activar-tema">Activar</button>`
+          : `<button data-id="${t.id}" class="btn-comprar-tema">Comprar</button>`}
+    </div>
+  `).join('');
+
+  const temaActivoActual = (data.temas.find(t => t.activo) || {}).clave || null;
+
+  temasEl.querySelectorAll('.btn-previsualizar-tema').forEach(btn => {
+    btn.addEventListener('click', () => window.aplicarTema(btn.dataset.clave));
+  });
+  temasEl.querySelectorAll('.btn-comprar-tema').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        await api(`/tienda/comprar/tema/${btn.dataset.id}`, { method: 'POST' });
+        cargarTienda();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  });
+  temasEl.querySelectorAll('.btn-activar-tema').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await api('/tienda/activar-tema', { method: 'POST', body: JSON.stringify({ clave: btn.dataset.clave }) });
+      cargarTienda();
+    });
+  });
+
+  document.getElementById('tienda-volver').onclick = () => {
+    window.aplicarTema(temaActivoActual);
+    cargarDashboard();
+  };
+
+  mostrar('vista-tienda');
+}
+
 const NOMBRE_TROFEO_DIA_PERFECTO = { 7: '🥉 7 dias perfectos', 15: '🥈 15 dias perfectos', 30: '🏆 30 dias perfectos (legendario)' };
 const NOMBRE_TROFEO_HABITO = { 7: '🥉 7 dias', 15: '🥈 15 dias', 30: '🥇 30 dias', 100: '🏆 100 dias (legendario)' };
 
@@ -89,6 +172,7 @@ async function cargarDashboard() {
   const { habitos } = await api('/habitos');
   const yo = await api('/auth/yo');
   document.getElementById('monedas-total').textContent = yo.usuario.monedas;
+  window.aplicarTema(yo.usuario.tema_activo);
 
   const lista = document.getElementById('lista-habitos');
   lista.innerHTML = '';

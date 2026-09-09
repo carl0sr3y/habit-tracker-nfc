@@ -29,6 +29,7 @@
       <span class="monedas">🪙 <span id="monedas-total">0</span></span>
     </div>
     <button class="secundario" id="btn-perfil" style="margin-bottom:12px;">🏆 Ver perfil y trofeos</button>
+    <button class="secundario" id="btn-tienda" style="margin-bottom:12px;">🛍️ Tienda</button>
     <div id="lista-habitos"></div>
     <button class="secundario" id="btn-logout" style="margin-top:16px;">Cerrar sesion</button>
     <button class="fab" id="btn-nuevo">+</button>
@@ -47,71 +48,4 @@
       <label>Descripcion (opcional)</label>
       <textarea id="form-descripcion" rows="2"></textarea>
       <label>Modo de marcado</label>
-      <select id="form-modo">
-        <option value="nfc">Chip NFC</option>
-        <option value="manual">Manual (boton en la app)</option>
-      </select>
-      <label>
-        <input type="checkbox" id="form-tiene-horario" style="width:auto;display:inline-block;">
-        Tiene horario especifico
-      </label>
-      <div id="form-horario-campos" class="oculto">
-        <label>Desde</label>
-        <input type="time" id="form-hora-inicio">
-        <label>Hasta</label>
-        <input type="time" id="form-hora-fin">
-      </div>
-      <label>Efecto visual al cumplir</label>
-      <select id="form-efecto">
-        <option value="estrellas">Estrellas</option>
-        <option value="ondas">Ondas de luz</option>
-        <option value="luciernagas">Luciernagas</option>
-      </select>
-      <button type="button" class="secundario" id="form-ver-efecto" style="margin-bottom:10px;">👁 Ver efecto</button>
-      <button id="form-guardar">Guardar</button>
-      <button class="secundario" id="form-cancelar" style="margin-top:8px;">Cancelar</button>
-    </div>
-  </div>
-
-  <!-- DETALLE DE HABITO -->
-  <div id="vista-detalle" class="oculto">
-    <h1 id="detalle-nombre"></h1>
-    <div class="tarjeta">
-      <p id="detalle-descripcion" class="error" style="color:var(--texto-tenue);"></p>
-      <p><strong>Tag NFC:</strong> <span id="detalle-tag"></span></p>
-      <p>🔥 Racha actual: <strong id="detalle-racha-actual"></strong> dias &nbsp;|&nbsp; Mejor racha: <strong id="detalle-racha-maxima"></strong> dias</p>
-      <div id="detalle-trofeos"></div>
-      <div id="detalle-cumplido-hoy" class="oculto">
-        <p style="color:#4ade80;">✔ Ya se cumplió hoy</p>
-        <button class="peligro" id="detalle-deshacer-hoy">Deshacer cumplido de hoy</button>
-      </div>
-      <p id="detalle-url-wrap"><strong>URL para grabar en el chip:</strong><br><code id="detalle-url" style="word-break:break-all;"></code></p>
-      <h3>Historial (ultimos cumplidos)</h3>
-      <div id="detalle-historial"></div>
-    </div>
-    <button id="detalle-editar">Editar</button>
-    <button class="peligro" id="detalle-borrar">Borrar habito</button>
-    <button class="secundario" id="detalle-volver">Volver</button>
-  </div>
-
-  <!-- PERFIL Y TROFEOS -->
-  <div id="vista-perfil" class="oculto">
-    <h1>Perfil</h1>
-    <div class="tarjeta">
-      <p>🪙 Monedas: <strong id="perfil-monedas"></strong></p>
-      <p>✨ Racha de dias perfectos: <strong id="perfil-racha-actual"></strong> dias &nbsp;|&nbsp; Mejor: <strong id="perfil-racha-maxima"></strong> dias</p>
-      <h3>Trofeos de dia perfecto</h3>
-      <div id="perfil-trofeos-dia-perfecto"></div>
-    </div>
-    <div class="tarjeta">
-      <h3>Trofeos por habito</h3>
-      <div id="perfil-trofeos-habito"></div>
-    </div>
-    <button class="secundario" id="perfil-volver">Volver</button>
-  </div>
-
-</div>
-<script src="/efectos.js"></script>
-<script src="/app.js"></script>
-</body>
-</html>
+      <select

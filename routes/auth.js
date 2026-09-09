@@ -9,7 +9,7 @@ const COOKIE_OPTS = {
   httpOnly: true,
   sameSite: 'lax',
   secure: process.env.NODE_ENV === 'production',
-  maxAge: 30 * 24 * 60 * 60 * 1000 // 30 dias
+  maxAge: 30 * 24 * 60 * 60 * 1000
 };
 
 router.post('/registro', async (req, res) => {
@@ -72,7 +72,7 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/yo', require('../middleware/auth').requireAuth, async (req, res) => {
-  const result = await pool.query('SELECT id, email, monedas FROM usuarios WHERE id = $1', [req.usuarioId]);
+  const result = await pool.query('SELECT id, email, monedas, tema_activo FROM usuarios WHERE id = $1', [req.usuarioId]);
   res.json({ usuario: result.rows[0] });
 });
 

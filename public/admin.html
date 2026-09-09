@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de desarrollador</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="contenedor">
+  <h1>Panel de desarrollador</h1>
+
+  <div id="vista-clave" class="tarjeta">
+    <p>Ingresa la clave de administrador para continuar.</p>
+    <div class="error oculto" id="clave-error"></div>
+    <input type="password" id="clave-input" placeholder="Clave de administrador">
+    <button id="clave-entrar">Entrar</button>
+  </div>
+
+  <div id="vista-admin" class="oculto">
+    <div class="tarjeta">
+      <h3>Agregar pintura</h3>
+      <div class="error oculto" id="admin-error"></div>
+      <label>Nombre</label>
+      <input type="text" id="admin-nombre" placeholder="Ej: La noche estrellada">
+      <label>Imagen (archivo)</label>
+      <input type="file" id="admin-imagen" accept="image/*">
+      <label>Precio (monedas)</label>
+      <input type="number" id="admin-precio" min="1" value="20">
+      <label>Marco</label>
+      <select id="admin-marco">
+        <option value="bronce">Bronce (poco famosa)</option>
+        <option value="plata">Plata (medio famosa)</option>
+        <option value="oro">Oro (muy famosa/cara)</option>
+      </select>
+      <button id="admin-guardar">Agregar pintura</button>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Pinturas existentes</h3>
+      <div id="admin-lista"></div>
+    </div>
+  </div>
+</div>
+<script src="/admin.js"></script>
+</body>
+</html>
